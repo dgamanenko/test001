@@ -1,0 +1,87 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: lambdacanaries.aws.lambda.k8s.io
+spec:
+  group: aws.lambda.k8s.io
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: lambdacanaries
+    singular: lambdacanary
+    kind: LambdaCanary
+    shortNames:
+    - lc
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          type: string
+        kind:
+          type: string
+        metadata:
+          $ref: "#/definitions/kubernetes-meta-v1.ObjectMeta"
+        spec:
+          type: object
+          properties:
+            function:
+              type: string
+            canaryConfig:
+              type: object
+              properties:
+                minCanarySize:
+                  type: integer
+                  minimum: 0
+                maxTrafficWeight:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                canaryTrafficWeight:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                stableTrafficWeight:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                cloudWatchMetricsEnabled:
+                  type: boolean
+                cloudWatchAlarmThreshold:
+                  type: number
+                  minimum: 0
+                healthCheckEnabled:
+                  type: boolean
+                healthCheckInterval:
+                  type: string
+                healthCheckPath:
+                  type: string
+                healthCheckTimeout:
+                  type: string
+                healthCheckThreshold:
+                  type: integer
+                  minimum: 0
+          required:
+          - function
+          - canaryConfig
+      required:
+      - spec
+  additionalPrinterColumns:
+    - name: Function
+      type: string
+      description: Lambda function name
+      JSONPath: .spec.function
+    - name: Canary Weight
+      type: string
+      description: Traffic weight for the canary function
+      JSONPath: .spec.canaryConfig.canaryTrafficWeight
+    - name: Stable Weight
+      type: string
+      description: Traffic weight for the stable function
+      JSONPath: .spec.canaryConfig.stableTrafficWeight
+    - name: Min Canary Size
+      type: string
+      description: Minimum number of instances for the canary function
+      JSONPath: .spec.canaryConfig.minCanarySize
